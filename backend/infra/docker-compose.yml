@@ -7,16 +7,38 @@ services:
       MYSQL_USER: app
       MYSQL_PASSWORD: app
     command: ["--character-set-server=utf8mb4","--collation-server=utf8mb4_0900_ai_ci","--default-time-zone=+09:00"]
-    ports: ["3307:3306"]  # 호스트에서 접속하려면 3307 사용(이미 3306 점유되어 있었음)
+    ports: ["3307:3306"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -proot --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
 
   redis:
     image: redis:7
     ports: ["6379:6379"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
 
   kafka:
     image: redpandadata/redpanda:latest
     command: ["redpanda","start","--mode=dev-container","--kafka-addr=0.0.0.0:9092","--advertise-kafka-addr=kafka:9092"]
     ports: ["9092:9092"]
+    restart: unless-stopped
+    healthcheck:
+      # 컨테이너 내부에 rpk가 있으니 이것으로 클러스터 상태 확인
+      test: ["CMD-SHELL", "rpk cluster info >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 40
+      start_period: 20s
 
   api-gateway:
     build:
@@ -24,43 +46,63 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
-    ports:
-      - "8000:8000"
-    depends_on: [todo-service, redis]
+      SPRING_DATA_REDIS_PORT: "6379"
+    ports: ["8000:8000"]
+    restart: unless-stopped
+    depends_on:
+      todo-service:
+        condition: service_started   # 게이트웨이는 todo가 단순 기동만 되어도 라우팅 가능
+      redis:
+        condition: service_healthy
 
   todo-service:
     build:
       context: ../services/todo-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-    ports:
-      - "8201:8201"
-    depends_on: [mysql, redis]
+    ports: ["8201:8201"]
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   location-event-service:
     build:
       context: ../services/location-event-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-    ports:
-      - "8301:8301"
-    depends_on: [kafka, redis]
+    ports: ["8301:8301"]
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   trigger-engine-service:
     build:
       context: ../services/trigger-engine-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-    ports:
-      - "8401:8401"
-    depends_on: [mysql, kafka, redis]
+    ports: ["8401:8401"]
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   notification-service:
     build:
       context: ../services/notification-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-    ports:
-      - "8501:8501"
-    depends_on: [kafka]
+    ports: ["8501:8501"]
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
