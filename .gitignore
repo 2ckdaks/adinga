@@ -1,0 +1,40 @@
+# ===== Java / Gradle / Maven =====
+**/.gradle/
+**/build/
+**/out/
+!**/gradle/wrapper/gradle-wrapper.jar
+**/.mvn/
+**/target/
+
+# ===== IDE =====
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Docker =====
+docker-data/
+.docker/
+
+# ===== Node / Frontend (추후 FE 추가 대비) =====
+node_modules/
+dist/
+
+# ===== Logs & Temp =====
+logs/
+**/*.log
+**/*.tmp
+
+# ===== Env & Secrets =====
+.env
+.env.*
+!*.example
+application-local.yml
+application-*.local.yml
+*.secrets.yml
