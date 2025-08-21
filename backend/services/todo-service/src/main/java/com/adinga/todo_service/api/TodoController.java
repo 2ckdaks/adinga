@@ -5,6 +5,10 @@ import com.adinga.todo_service.api.dto.UpdateTodoRequest;
 import com.adinga.todo_service.domain.Todo;
 import com.adinga.todo_service.service.TodoService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +26,11 @@ public class TodoController {
     }
 
     @GetMapping
-    public List<Todo> list() {
-        return todoService.findAll();
+    public Page<Todo> list(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable
+    ) {
+        return todoService.findAll(pageable);
     }
 
     @PostMapping
