@@ -1,60 +1,51 @@
 package com.adinga.todo_service.api;
 
-import com.adinga.todo_service.api.dto.TodoDtos;
+import com.adinga.todo_service.api.dto.CreateTodoRequest;
+import com.adinga.todo_service.api.dto.UpdateTodoRequest;
 import com.adinga.todo_service.domain.Todo;
 import com.adinga.todo_service.service.TodoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.format.DateTimeFormatter;
+import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping("/todos")
 public class TodoController {
 
-    private final TodoService service;
-    private final DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-
-    public TodoController(TodoService service) {
-        this.service = service;
+    private final TodoService todoService;
+    public TodoController(TodoService todoService) {
+        this.todoService = todoService;
     }
 
     @GetMapping
-    public List<TodoDtos.Res> list() {
-        return service.findAll().stream().map(this::toRes).toList();
-    }
-
-    @GetMapping("/{id}")
-    public TodoDtos.Res get(@PathVariable Long id) {
-        return toRes(service.findById(id));
+    public List<Todo> list() {
+        return todoService.findAll();
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public TodoDtos.Res create(@Valid @RequestBody TodoDtos.CreateReq req) {
-        return toRes(service.create(req.title));
+    public ResponseEntity<Todo> create(@Valid @RequestBody CreateTodoRequest req) {
+        Todo created = todoService.create(req.getTitle());
+        return ResponseEntity.created(URI.create("/todos/" + created.getId()))
+                .body(created);
+    }
+
+    @GetMapping("/{id}")
+    public Todo get(@PathVariable Long id) {
+        return todoService.findById(id);
     }
 
     @PatchMapping("/{id}")
-    public TodoDtos.Res patch(@PathVariable Long id, @RequestBody TodoDtos.UpdateReq req) {
-        return toRes(service.updatePartial(id, req.title, req.completed));
+    public Todo patch(@PathVariable Long id, @Valid @RequestBody UpdateTodoRequest req) {
+        return todoService.updatePartial(id, req.getTitle(), req.getCompleted());
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
-        service.delete(id);
-    }
-
-    private TodoDtos.Res toRes(Todo t) {
-        TodoDtos.Res r = new TodoDtos.Res();
-        r.id = t.getId();
-        r.title = t.getTitle();
-        r.completed = t.isCompleted();
-        r.createdAt = t.getCreatedAt() != null ? fmt.format(t.getCreatedAt()) : null;
-        r.updatedAt = t.getUpdatedAt() != null ? fmt.format(t.getUpdatedAt()) : null;
-        return r;
+        todoService.delete(id);
     }
 }
