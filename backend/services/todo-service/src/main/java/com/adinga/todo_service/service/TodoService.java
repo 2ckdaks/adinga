@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.adinga.todo_service.exception.TodoNotFoundException;
 
 import java.util.List;
 
@@ -34,8 +35,7 @@ public class TodoService {
     /** 단건 조회 */
     @Transactional(readOnly = true)
     public Todo findById(Long id) {
-        return repo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Todo not found: " + id));
+        return repo.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
     }
 
     /** 생성 */

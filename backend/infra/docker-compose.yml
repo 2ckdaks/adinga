@@ -11,6 +11,7 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
       - --default-time-zone=+09:00
+      - --innodb-use-native-aio=0
     ports: ["3307:3306"]
     restart: unless-stopped
     volumes:
