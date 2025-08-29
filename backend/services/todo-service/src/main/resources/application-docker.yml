@@ -1,0 +1,27 @@
+server:
+  tomcat:
+    basedir: /app
+    accesslog:
+      enabled: true
+      directory: logs          # => /app/logs
+      prefix: access           # => access.log
+      suffix: .log
+      file-date-format: ''     # 날짜 붙이지 않음 (고정 파일명)
+      pattern: '%h %l %u %t "%r" %s %b %D "%{X-Request-Id}i"'
+
+logging:
+  # 필요시 서비스 로깅 레벨
+  level:
+    root: INFO
+    com.adinga.todo_service: INFO
+    org.hibernate.SQL_SLOW: INFO
+    # 파라미터까지 보고 싶을 때만 DEBUG/TRACE로 올려 사용 (부하/보안 고려)
+    # org.hibernate.SQL: DEBUG
+    # org.hibernate.orm.jdbc.bind: TRACE
+
+spring:
+  jpa:
+    properties:
+      # 200ms 이상 쿼리 느린쿼리 로그로 집계 (Hibernate 6)
+      hibernate.session.events.log.LOG_QUERIES_SLOWER_THAN_MS: 200
+      hibernate.format_sql: true
