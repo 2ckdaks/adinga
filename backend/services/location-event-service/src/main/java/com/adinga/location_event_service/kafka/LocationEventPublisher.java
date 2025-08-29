@@ -1,0 +1,32 @@
+package com.adinga.location_event_service.kafka;
+
+import com.adinga.location_event_service.dto.LocationEvent;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
+
+@Service
+public class LocationEventPublisher {
+
+    private final KafkaTemplate<String, LocationEvent> kafkaTemplate;
+    private final String topic;
+
+    public LocationEventPublisher(
+            KafkaTemplate<String, LocationEvent> kafkaTemplate,
+            @Value("${app.kafka.location-topic:location-events}") String topic) {
+        this.kafkaTemplate = kafkaTemplate;
+        this.topic = topic;
+    }
+
+    public CompletableFuture<SendResult<String, LocationEvent>> publish(LocationEvent e) {
+        if (e.getTs() == null) {
+            e.setTs(Instant.now());
+        }
+        String key = e.getDeviceId() == null ? "unknown" : e.getDeviceId();
+        return kafkaTemplate.send(topic, key, e);
+    }
+}

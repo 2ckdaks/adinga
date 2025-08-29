@@ -1,0 +1,16 @@
+server:
+  port: 8301
+
+spring:
+  kafka:
+    bootstrap-servers: kafka:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        # 타입 헤더 빼고 순수 JSON만 보내자(이종 소비자 호환↑)
+        spring.json.add.type.headers: false
+
+app:
+  kafka:
+    location-topic: location-events
