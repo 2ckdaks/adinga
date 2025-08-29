@@ -37,15 +37,37 @@ services:
 
   kafka:
     image: redpandadata/redpanda:latest
-    command: ["redpanda","start","--mode=dev-container","--kafka-addr=0.0.0.0:9092","--advertise-kafka-addr=kafka:9092"]
-    ports: ["9092:9092"]
+    command:
+      [
+        "redpanda","start","--mode=dev-container",
+        "--kafka-addr=PLAINTEXT://0.0.0.0:9092,OUTSIDE://0.0.0.0:19092",
+        "--advertise-kafka-addr=PLAINTEXT://kafka:9092,OUTSIDE://localhost:19092"
+      ]
+    ports: [ "9092:9092", "19092:19092" ]
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "rpk cluster info >/dev/null 2>&1"]
+      test: [ "CMD-SHELL", "rpk cluster info >/dev/null 2>&1" ]
       interval: 5s
       timeout: 5s
       retries: 60
       start_period: 60s
+    volumes:
+      - redpanda_data:/var/lib/redpanda
+
+  kafka-init:
+    image: redpandadata/redpanda:latest
+    depends_on:
+      kafka:
+        condition: service_healthy
+    # 한 줄로 통째로 실행 (CRLF 영향 제거)
+    entrypoint:
+      - /bin/sh
+      - -lc
+      - >
+        rpk cluster info --brokers kafka:9092 >/dev/null
+        && rpk topic create --brokers kafka:9092 -p 3 -r 1 --config retention.ms=604800000 location-events notifications
+        && rpk topic create --brokers kafka:9092 -p 3 -r 1 --config retention.ms=1209600000 location-events.dlt notifications.dlt
+    restart: "no"
 
   api-gateway:
     build:
@@ -116,3 +138,4 @@ services:
 
 volumes:
   mysql_data:
+  redpanda_data:
