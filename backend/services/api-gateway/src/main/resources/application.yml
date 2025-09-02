@@ -1,0 +1,19 @@
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+#          routes:
+#            - id: locations
+#              uri: http://${LOCATIONS_HOST:location-event-service}:${LOCATIONS_PORT:8301}
+#              predicates:
+#                - Path=/api/locations/**
+#              filters:
+#                - RewritePath=/api/locations(?<segment>/?.*), ${segment}
+#
+#            - id: notifications
+#              uri: http://${NOTIFICATIONS_HOST:notification-service}:${NOTIFICATIONS_PORT:8501}
+#              predicates:
+#                - Path=/api/notifications/**
+#              filters:
+#                - RewritePath=/api/notifications(?<segment>/?.*), ${segment}

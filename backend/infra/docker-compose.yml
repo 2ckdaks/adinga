@@ -76,13 +76,23 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: "6379"
-    ports: ["8000:8000"]
+      # ⬇ 라우트 타깃 환경변수 추가(원하면 생략 가능: 위 YAML의 기본값과 동일)
+      LOCATIONS_HOST: location-event-service
+      LOCATIONS_PORT: "8301"
+      NOTIFICATIONS_HOST: notification-service
+      NOTIFICATIONS_PORT: "8501"
+    ports: [ "8000:8000" ]
     restart: unless-stopped
     depends_on:
       todo-service:
         condition: service_started
       redis:
         condition: service_healthy
+      # ⬇ 게이트웨이가 의존하는 서비스도 명시해두면 편함
+      notification-service:
+        condition: service_started
+      location-event-service:
+        condition: service_started
 
   todo-service:
     build:
