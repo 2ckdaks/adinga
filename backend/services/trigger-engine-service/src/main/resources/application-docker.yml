@@ -11,11 +11,22 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
 
-# 스케줄러 폴링 주기 (룰 테이블을 이 주기로 스캔)
+# 스케줄러 폴링 주기 (ms)
 rules:
   poll-interval-ms: 5000
 
 logging:
   level:
     com.adinga.trigger_engine_service: INFO
+
+app:
+  topics:
+    notifications: notifications
