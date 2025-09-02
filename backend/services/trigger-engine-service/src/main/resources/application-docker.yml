@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:mysql://mysql:3306/adinga?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: app
+    password: app
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+# 스케줄러 폴링 주기 (룰 테이블을 이 주기로 스캔)
+rules:
+  poll-interval-ms: 5000
+
+logging:
+  level:
+    com.adinga.trigger_engine_service: INFO
