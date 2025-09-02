@@ -93,6 +93,17 @@ services:
         condition: service_started
       location-event-service:
         condition: service_started
+    develop:
+      watch:
+        - action: rebuild
+          path: ../services/api-gateway
+          ignore:
+            - build/**
+            - .gradle/**
+            - .idea/**
+            - out/**
+            - "**/*.iml"
+            - "**/*.log"
 
   todo-service:
     build:
@@ -106,6 +117,17 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    develop:
+      watch:
+        - action: rebuild
+          path: ../services/todo-service
+          ignore:
+            - build/**
+            - .gradle/**
+            - .idea/**
+            - out/**
+            - "**/*.iml"
+            - "**/*.log"
 
   location-event-service:
     build:
@@ -119,6 +141,17 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    develop:
+      watch:
+        - action: rebuild
+          path: ../services/location-event-service
+          ignore:
+            - build/**
+            - .gradle/**
+            - .idea/**
+            - out/**
+            - "**/*.iml"
+            - "**/*.log"
 
   trigger-engine-service:
     build:
@@ -134,6 +167,17 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    develop:
+      watch:
+        - action: rebuild
+          path: ../services/trigger-engine-service
+          ignore:
+            - build/**
+            - .gradle/**
+            - .idea/**
+            - out/**
+            - "**/*.iml"
+            - "**/*.log"
 
   notification-service:
     build:
@@ -145,6 +189,17 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+    develop:
+      watch:
+        - action: rebuild
+          path: ../services/notification-service
+          ignore:
+            - build/**
+            - .gradle/**
+            - .idea/**
+            - out/**
+            - "**/*.iml"
+            - "**/*.log"
 
 volumes:
   mysql_data:
