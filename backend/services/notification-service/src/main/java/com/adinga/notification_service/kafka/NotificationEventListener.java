@@ -1,5 +1,6 @@
 package com.adinga.notification_service.kafka;
 
+import com.adinga.notification_service.model.NotificationEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -12,22 +13,23 @@ import org.springframework.stereotype.Component;
 public class NotificationEventListener {
 
     @KafkaListener(
-            topics = KafkaTopics.NOTIFICATIONS,
-            containerFactory = "kafkaListenerContainerFactory",
-            groupId = "notification-service"
+            topics = "${app.topics.notifications:notifications}",
+            containerFactory = "notificationKafkaListenerContainerFactory",
+            groupId = "${spring.kafka.consumer.group-id:notification-service}"
     )
     public void onMessage(
-            @Payload String value,
+            @Payload NotificationEvent event,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
             @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
             @Header(KafkaHeaders.OFFSET) long offset,
             @Header(name = KafkaHeaders.RECEIVED_KEY, required = false) String key
     ) {
-        log.info("Notification received topic={}, partition={}, offset={}, key={}, value={}",
-                topic, partition, offset, key, value);
+        log.info("Notification received topic={}, partition={}, offset={}, key={}, event={}",
+                topic, partition, offset, key, event);
 
-        // 데모용: 값에 "fail"이 들어있으면 실패로 간주 → DLT로 보내짐
-        if (value != null && value.contains("fail")) {
+        // 타입(레코드/POJO) 상관없이 데모 실패 트리거
+        String asText = String.valueOf(event);
+        if (asText.contains("fail")) {
             throw new IllegalArgumentException("forced failure for demo");
         }
     }
