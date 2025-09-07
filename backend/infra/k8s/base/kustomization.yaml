@@ -1,0 +1,6 @@
+namespace: adinga
+
+resources:
+  - redis.yaml
+  - api-gateway.yaml
+  - ingress.yaml
