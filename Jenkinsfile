@@ -30,8 +30,9 @@ pipeline {
             echo "$GH_PAT" | docker login ghcr.io -u "$OWNER" --password-stdin
 
             # Dockerfile(멀티스테이지)로 바로 빌드
-            docker build -t ghcr.io/$OWNER/${IMAGE_NAME}:$TAG \
-              -f "$DOCKERFILE" "$DOCKER_CTX"
+            docker build -t ghcr.io/$OWNER/api-gateway:$TAG \
+              -f backend/services/api-gateway/Dockerfile \
+              backend/services/api-gateway
 
             docker push ghcr.io/$OWNER/${IMAGE_NAME}:$TAG
           '''
