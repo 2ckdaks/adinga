@@ -1,11 +1,6 @@
-FROM gradle:8.8-jdk17 AS build
-WORKDIR /app
-COPY . .
-RUN gradle bootJar --no-daemon
-
 FROM eclipse-temurin:17-jre
-ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0"
 WORKDIR /app
-COPY --from=build /app/build/libs/*.jar app.jar
+ARG JAR=build/libs/*.jar
+COPY ${JAR} app.jar
 EXPOSE 8000
 ENTRYPOINT ["java","-jar","/app/app.jar"]
