@@ -150,3 +150,5 @@ notification-service (8501)
 notifications 컨슘, 실패 시 notifications.dlt로 라우팅
 
 헬스: /actuator/health
+
+// jenkins 자동빌드 테스트를 위한 커밋
