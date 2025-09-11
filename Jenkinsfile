@@ -1,9 +1,9 @@
 pipeline {
   agent any
   environment {
-    IMAGE_NAME   = 'adinga'
-    DOCKERFILE   = 'Dockerfile'
-    DOCKER_CTX   = '.'
+    IMAGE_NAME = 'adinga'
+    DOCKERFILE = 'Dockerfile'
+    DOCKER_CTX = '.'
   }
   stages {
     stage('Build & Push (GHCR)') {
@@ -13,18 +13,22 @@ pipeline {
           usernameVariable: 'GH_USER',
           passwordVariable: 'GH_PAT'
         )]) {
-          sh '''
-            set -euo pipefail
-            OWNER=$(printf "%s" "$GH_USER" | tr "[:upper:]" "[:lower:]" | tr -d " \t\r\n")
-            TAG="build-${BUILD_NUMBER}"
+          sh """
+            bash -lc '
+              set -euo pipefail
 
-            echo "Owner=${OWNER}, Image=${IMAGE_NAME}, Tag=${TAG}"
-            echo "$GH_PAT" | docker login ghcr.io -u "$OWNER" --password-stdin
+              OWNER=\$(printf "%s" "\$GH_USER" | tr "[:upper:]" "[:lower:]" | tr -d " \\t\\r\\n")
+              TAG="build-${BUILD_NUMBER}"
 
-            docker build -t ghcr.io/${OWNER}/${IMAGE_NAME}:${TAG} \
-              -f "${DOCKERFILE}" "${DOCKER_CTX}"
-            docker push ghcr.io/${OWNER}/${IMAGE_NAME}:${TAG}
-          '''
+              echo "Owner=\${OWNER}, Image=\${IMAGE_NAME}, Tag=\${TAG}"
+              echo "\$GH_PAT" | docker login ghcr.io -u "\$OWNER" --password-stdin
+
+              docker build -t ghcr.io/\${OWNER}/\${IMAGE_NAME}:\${TAG} \
+                -f "\${DOCKERFILE}" "\${DOCKER_CTX}"
+
+              docker push ghcr.io/\${OWNER}/\${IMAGE_NAME}:\${TAG}
+            '
+          """
         }
       }
     }
