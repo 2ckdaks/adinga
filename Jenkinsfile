@@ -1,26 +1,15 @@
 pipeline {
   agent any
+
   environment {
-    SERVICE_DIR = 'backend/services/api-gateway'
-    IMAGE_NAME  = 'api-gateway'
-    TAG         = "build-${env.BUILD_NUMBER}"
-
-    // 방금 설치한 JDK 17 경로로 맞춰주세요
-    JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
-    PATH      = "${JAVA_HOME}/bin:${PATH}"
+    IMAGE_NAME = 'api-gateway'
+    DOCKERFILE = 'backend/services/api-gateway/Dockerfile'
+    DOCKER_CTX = 'backend/services/api-gateway'
   }
-  stages {
-    stage('Checkout') { steps { checkout scm } }
 
-    stage('Gradle Build (outside Docker)') {
-      steps {
-        dir("${SERVICE_DIR}") {
-          sh '''
-            chmod +x gradlew || true
-            ./gradlew --no-daemon -x test clean bootJar
-          '''
-        }
-      }
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
     }
 
     stage('Docker Build & Push (GHCR)') {
@@ -32,15 +21,19 @@ pipeline {
         )]) {
           sh '''
             set -e
-            OWNER=$(printf "%s" "$GH_USER" | tr "[:upper:]" "[:lower:]" | tr -d " \t\r\n")
+            OWNER=$(printf "%s" "$GH_USER" | tr '[:upper:]' '[:lower:]' | tr -d ' \t\r\n')
+            TAG="build-${BUILD_NUMBER}"
+
+            echo "Owner=$OWNER, Image=${IMAGE_NAME}, Tag=$TAG"
+
+            # GHCR 로그인
             echo "$GH_PAT" | docker login ghcr.io -u "$OWNER" --password-stdin
 
-            docker build -t ghcr.io/$OWNER/${IMAGE_NAME}:${TAG} \
-              -f ${SERVICE_DIR}/Dockerfile.jvm \
-              --build-arg JAR=${SERVICE_DIR}/build/libs/*.jar \
-              .
+            # Dockerfile(멀티스테이지)로 바로 빌드
+            docker build -t ghcr.io/$OWNER/${IMAGE_NAME}:$TAG \
+              -f "$DOCKERFILE" "$DOCKER_CTX"
 
-            docker push ghcr.io/$OWNER/${IMAGE_NAME}:${TAG}
+            docker push ghcr.io/$OWNER/${IMAGE_NAME}:$TAG
           '''
         }
       }
