@@ -63,5 +63,22 @@ pipeline {
         }
       }
     }
+
+    stage('AWS smoke check') {
+      steps {
+        withCredentials([usernamePassword(
+          credentialsId: 'aws-jenkins',
+          usernameVariable: 'AWS_ACCESS_KEY_ID',
+          passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+        )]) {
+          sh '''
+            set -e
+            export AWS_DEFAULT_REGION=ap-northeast-2
+            aws sts get-caller-identity
+            aws eks describe-cluster --name adinga-dev --region ap-northeast-2 --query 'cluster.status'
+          '''
+        }
+      }
+    }
   }
 }
