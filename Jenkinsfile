@@ -2,9 +2,10 @@ pipeline {
   agent any
 
   environment {
-    IMAGE_NAME = 'api-gateway'
-    DOCKERFILE = 'backend/services/api-gateway/Dockerfile'
-    DOCKER_CTX = 'backend/services/api-gateway'
+    // 빌드/배포 대상 서비스들
+    SERVICES = "api-gateway location-event-service notification-service"
+    AWS_REGION = 'ap-northeast-2'
+    EKS_CLUSTER = 'adinga-dev'
   }
 
   stages {
@@ -20,20 +21,23 @@ pipeline {
           passwordVariable: 'GH_PAT'
         )]) {
           sh '''
-            set -e
+            set -euo pipefail
             OWNER=$(printf "%s" "$GH_USER" | tr '[:upper:]' '[:lower:]' | tr -d ' \t\r\n')
             TAG="build-${BUILD_NUMBER}"
-            IMAGE="ghcr.io/${OWNER}/${IMAGE_NAME}:${TAG}"
-
-            echo "Owner=$OWNER, Image=${IMAGE}"
 
             echo "$GH_PAT" | docker login ghcr.io -u "$OWNER" --password-stdin
 
-            docker build -t "${IMAGE}" -f "${DOCKERFILE}" "${DOCKER_CTX}"
-            docker push "${IMAGE}"
+            for SVC in ${SERVICES}; do
+              IMAGE="ghcr.io/${OWNER}/${SVC}:${TAG}"
+              DF="backend/services/${SVC}/Dockerfile"
+              CTX="backend/services/${SVC}"
+              echo "==> Build & Push ${IMAGE}"
+              docker build -t "${IMAGE}" -f "${DF}" "${CTX}"
+              docker push "${IMAGE}"
+            done
 
-            # 다음 스테이지에서 쓰도록 파일로 남겨도 됨
-            echo "${IMAGE}" > image.txt
+            # 나중 스테이지에서 참고할 수 있게 기록
+            echo "${TAG}" > tag.txt
           '''
         }
       }
@@ -47,18 +51,33 @@ pipeline {
           passwordVariable: 'AWS_SECRET_ACCESS_KEY'
         )]) {
           sh '''
-            set -e
-            export AWS_DEFAULT_REGION=ap-northeast-2
-            TAG="build-${BUILD_NUMBER}"
-            IMAGE="ghcr.io/2ckdaks/${IMAGE_NAME}:${TAG}"
+            set -euo pipefail
+            export AWS_DEFAULT_REGION="${AWS_REGION}"
+            TAG=$(cat tag.txt || echo "build-${BUILD_NUMBER}")
+            OWNER_LOWER=$(echo "${GH_USER:-2ckdaks}" | tr '[:upper:]' '[:lower:]' | tr -d ' \t\r\n')
 
-            aws eks update-kubeconfig --name adinga-dev --region ap-northeast-2
+            aws eks update-kubeconfig --name "${EKS_CLUSTER}" --region "${AWS_REGION}"
 
-            cd backend/infra/k8s/base
-            kubectl apply -k .
+            # 모든 매니페스트(게이트웨이/각 서비스) 적용
+            kubectl -n adinga apply -k backend/infra/k8s/base
 
-            kubectl -n adinga set image deploy/api-gateway api-gateway="${IMAGE}"
-            kubectl -n adinga rollout status deploy/api-gateway
+            # 최신 이미지로 교체
+            for SVC in ${SERVICES}; do
+              DEPLOY="${SVC}"
+              CONTAINER="app"
+              # api-gateway는 컨테이너 이름이 'api-gateway' 라면 처리
+              if [ "${SVC}" = "api-gateway" ]; then
+                CONTAINER="api-gateway"
+              fi
+              IMAGE="ghcr.io/${OWNER_LOWER}/${SVC}:${TAG}"
+              echo "==> set image deploy/${DEPLOY} ${CONTAINER}=${IMAGE}"
+              kubectl -n adinga set image deploy/${DEPLOY} ${CONTAINER}=${IMAGE}
+            done
+
+            # 롤아웃 확인
+            for DEP in ${SERVICES}; do
+              kubectl -n adinga rollout status deploy/${DEP}
+            done
           '''
         }
       }
@@ -73,9 +92,9 @@ pipeline {
         )]) {
           sh '''
             set -e
-            export AWS_DEFAULT_REGION=ap-northeast-2
+            export AWS_DEFAULT_REGION="${AWS_REGION}"
             aws sts get-caller-identity
-            aws eks describe-cluster --name adinga-dev --region ap-northeast-2 --query 'cluster.status'
+            aws eks describe-cluster --name "${EKS_CLUSTER}" --region "${AWS_REGION}" --query 'cluster.status'
           '''
         }
       }

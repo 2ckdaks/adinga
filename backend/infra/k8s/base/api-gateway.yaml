@@ -14,7 +14,7 @@ spec:
         - name: regcred
       containers:
         - name: api-gateway
-          image: ghcr.io/2ckdaks/api-gateway:dev-20250907142802   # <- 방금 푸시한 TAG
+          image: ghcr.io/2ckdaks/api-gateway:dev-20250907142802
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
