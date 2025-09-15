@@ -42,7 +42,9 @@ kind: Service
 metadata:
   name: api-gateway
   annotations:
-    service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol: "http"
+#    service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol: "http"
+#    service.beta.kubernetes.io/aws-load-balancer-healthcheck-port: "traffic-port"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol: "TCP"
     service.beta.kubernetes.io/aws-load-balancer-healthcheck-port: "traffic-port"
     service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: "/actuator/health"
     service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval: "10"
