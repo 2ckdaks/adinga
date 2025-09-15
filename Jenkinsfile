@@ -30,6 +30,8 @@ pipeline {
               echo "==> Build & Push ${IMAGE}"
               docker build -t "${IMAGE}" -f "${DF}" "${CTX}"
               docker push "${IMAGE}"
+              docker rmi "${IMAGE}" || true
+              docker builder prune -af || true
             done
 
             echo "${TAG}" > tag.txt
