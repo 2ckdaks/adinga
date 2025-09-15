@@ -4,5 +4,5 @@ resources:
   - redis.yaml
   - api-gateway.yaml
   - ingress.yaml
-  - ../../services/location-event-service/k8s/location-event-service.yaml
-  - ../../services/notification-service/k8s/notification-service.yaml
+  - ../../../services/location-event-service/k8s/location-event-service.yaml
+  - ../../../services/notification-service/k8s/notification-service.yaml
