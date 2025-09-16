@@ -45,6 +45,7 @@ public class SecurityConfig {
                                 "/api/*/actuator/health/**",
                                 "/api/*/actuator/info"
                         ).permitAll()
+                        .pathMatchers("/webjars/**").permitAll()
 
                         .anyExchange().authenticated()
                 )
