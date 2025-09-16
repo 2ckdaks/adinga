@@ -42,11 +42,14 @@ public class SecurityConfig {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(ex -> ex
+                        // 게이트웨이 자체 문서/헬스는 공개
                         .pathMatchers(
                                 "/actuator/health", "/actuator/health/**", "/actuator/info",
                                 "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**"
                         ).permitAll()
-                        .anyExchange().authenticated()
+                        // ★ 서비스 경로는 게이트웨이에서 인증하지 말고 통과
+                        .pathMatchers("/api/**", "/api/*/swagger-ui/**", "/api/*/v3/api-docs/**").permitAll()
+                        .anyExchange().authenticated()   // 필요하면 유지, 아니면 .permitAll()로 더 단순화
                 )
                 .build();
     }
