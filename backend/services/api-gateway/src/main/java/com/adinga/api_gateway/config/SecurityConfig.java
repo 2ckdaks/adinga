@@ -47,10 +47,15 @@ public class SecurityConfig {
                                 "/actuator/health", "/actuator/health/**", "/actuator/info",
                                 "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
 
-                                // 백엔드 프록시 경로
+                                // 프록시 Swagger & OpenAPI
                                 "/api/*/swagger-ui.html",
                                 "/api/*/swagger-ui/**",
-                                "/api/*/v3/api-docs/**"
+                                "/api/*/v3/api-docs/**",
+                                "/api/*/webjars/**",
+
+                                "/api/*/actuator/health",
+                                "/api/*/actuator/health/**",
+                                "/api/*/actuator/info"
                         ).permitAll()
                         .anyExchange().authenticated()
                 )
