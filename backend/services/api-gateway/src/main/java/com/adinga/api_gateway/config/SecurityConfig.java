@@ -7,6 +7,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -14,49 +15,37 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import reactor.core.publisher.Mono;
 
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-    // 일반 라우트(게이트웨이 경유 요청)는 전부 허용
-//    @Bean
-//    @Order(1)
-//    public SecurityWebFilterChain appSecurity(ServerHttpSecurity http) {
-//        return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
-//                .authorizeExchange(ex -> ex
-//                        // Swagger
-//                        .pathMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/api/*/v3/api-docs/**").permitAll()
-//                        // 헬스/인포만 공개
-//                        .pathMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
-//                        // 나머지는 여기선 판단하지 않음(Actuator 전용 필터가 체크)
-//                        .anyExchange().permitAll()
-//                )
-//                .build();
-//    }
     @Bean
     @Order(1)
-    SecurityWebFilterChain security(ServerHttpSecurity http) {
+    public SecurityWebFilterChain security(ServerHttpSecurity http) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .authorizeExchange(ex -> ex
+                        // 게이트웨이 자체
                         .pathMatchers(
-                                // 게이트웨이 자체
                                 "/actuator/health", "/actuator/health/**", "/actuator/info",
-                                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
+                                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**"
+                        ).permitAll()
 
-                                // 프록시 Swagger & OpenAPI
+                        // 프록시 Swagger & OpenAPI & actuator 일부
+                        .pathMatchers(
                                 "/api/*/swagger-ui.html",
                                 "/api/*/swagger-ui/**",
                                 "/api/*/v3/api-docs/**",
                                 "/api/*/webjars/**",
-
                                 "/api/*/actuator/health",
                                 "/api/*/actuator/health/**",
                                 "/api/*/actuator/info"
                         ).permitAll()
+
                         .anyExchange().authenticated()
                 )
                 .build();
@@ -64,12 +53,10 @@ public class SecurityConfig {
 }
 
 /**
- * Actuator 전용 베어러 토큰 가드(WebFilter) — Actuator 체인에도 확실히 적용됨.
- * - /actuator/health, /actuator/info 은 통과
- * - 그 외 /actuator/** 는 Authorization: Bearer {token} 없으면 401
+ * /actuator/* 전용 토큰 가드 (게이트웨이 자신의 actuator 보호)
  */
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE) // 보안 필터 체인의 맨 앞에서 확인
+@Order(Ordered.HIGHEST_PRECEDENCE)
 class ActuatorBearerGuard implements WebFilter {
 
     private final String token;
@@ -84,17 +71,16 @@ class ActuatorBearerGuard implements WebFilter {
         String path = req.getURI().getPath();
 
         if (!path.startsWith("/actuator/")) {
-            return chain.filter(exchange); // actuator가 아니면 패스
+            return chain.filter(exchange); // actuator가 아니면 통과
         }
-        // 공개 허용 경로
         if (path.equals("/actuator/health") || path.startsWith("/actuator/health/")
                 || path.equals("/actuator/info")) {
-            return chain.filter(exchange);
+            return chain.filter(exchange); // health/info는 공개
         }
 
         String auth = req.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (token != null && !token.isBlank() && ("Bearer " + token).equals(auth)) {
-            return chain.filter(exchange);
+            return chain.filter(exchange); // 토큰 일치 시 통과
         }
 
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
