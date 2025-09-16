@@ -5,16 +5,53 @@ spring:
         - id: locations
           uri: http://${LOCATIONS_HOST:location-event-service}:${LOCATIONS_PORT:8301}
           predicates:
-            - Path=/locations/**          # 프론트는 /locations/** 로 호출
+            - Path=/api/locations/**
           filters:
-            - StripPrefix=1                # 백엔드에는 / 이하만 전달
+            # 기존 RewritePath 유지 (이미 적용되어 있음)
+            - RewritePath=/api/locations(?<segment>/?.*), ${segment}
+            # ⬇ actuator와 swagger 요청은 Authorization 헤더 제거
+            - name: RemoveRequestHeader
+              args:
+                name: Authorization
+              # 적용 조건: actuator/ 또는 swagger-ui, v3/api-docs 로 갈 때만
+              # (Spring Cloud Gateway 기본 필터는 조건식을 직접 못 붙여서,
+              #  보통은 라우트를 하나 더 쪼개거나, 아래처럼 별도 라우트를 둡니다.)
+        - id: locations-actuator-open
+          uri: http://${LOCATIONS_HOST:location-event-service}:${LOCATIONS_PORT:8301}
+          predicates:
+            - Path=/api/locations/actuator/**,/api/locations/swagger-ui/**,/api/locations/v3/api-docs/**
+          filters:
+            - RewritePath=/api/locations(?<segment>/?.*), ${segment}
+            - RemoveRequestHeader=Authorization
 
         - id: notifications
           uri: http://${NOTIFICATIONS_HOST:notification-service}:${NOTIFICATIONS_PORT:8501}
           predicates:
-            - Path=/notifications/**
+            - Path=/api/notifications/**
           filters:
-            - StripPrefix=1
+            - RewritePath=/api/notifications(?<segment>/?.*), ${segment}
+
+        - id: notifications-actuator-open
+          uri: http://${NOTIFICATIONS_HOST:notification-service}:${NOTIFICATIONS_PORT:8501}
+          predicates:
+            - Path=/api/notifications/actuator/**,/api/notifications/swagger-ui/**,/api/notifications/v3/api-docs/**
+          filters:
+            - RewritePath=/api/notifications(?<segment>/?.*), ${segment}
+            - RemoveRequestHeader=Authorization
+#      routes:
+#        - id: locations
+#          uri: http://${LOCATIONS_HOST:location-event-service}:${LOCATIONS_PORT:8301}
+#          predicates:
+#            - Path=/locations/**          # 프론트는 /locations/** 로 호출
+#          filters:
+#            - StripPrefix=1                # 백엔드에는 / 이하만 전달
+#
+#        - id: notifications
+#          uri: http://${NOTIFICATIONS_HOST:notification-service}:${NOTIFICATIONS_PORT:8501}
+#          predicates:
+#            - Path=/notifications/**
+#          filters:
+#            - StripPrefix=1
 
       # CORS – 프론트 개발 시 편의
       globalcors:

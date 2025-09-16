@@ -22,17 +22,31 @@ import reactor.core.publisher.Mono;
 public class SecurityConfig {
 
     // 일반 라우트(게이트웨이 경유 요청)는 전부 허용
+//    @Bean
+//    @Order(1)
+//    public SecurityWebFilterChain appSecurity(ServerHttpSecurity http) {
+//        return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
+//                .authorizeExchange(ex -> ex
+//                        // Swagger
+//                        .pathMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/api/*/v3/api-docs/**").permitAll()
+//                        // 헬스/인포만 공개
+//                        .pathMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
+//                        // 나머지는 여기선 판단하지 않음(Actuator 전용 필터가 체크)
+//                        .anyExchange().permitAll()
+//                )
+//                .build();
+//    }
     @Bean
     @Order(1)
-    public SecurityWebFilterChain appSecurity(ServerHttpSecurity http) {
-        return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
+    SecurityWebFilterChain security(ServerHttpSecurity http) {
+        return http
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(ex -> ex
-                        // Swagger
-                        .pathMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/api/*/v3/api-docs/**").permitAll()
-                        // 헬스/인포만 공개
-                        .pathMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
-                        // 나머지는 여기선 판단하지 않음(Actuator 전용 필터가 체크)
-                        .anyExchange().permitAll()
+                        .pathMatchers(
+                                "/actuator/health", "/actuator/health/**", "/actuator/info",
+                                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**"
+                        ).permitAll()
+                        .anyExchange().authenticated()
                 )
                 .build();
     }
