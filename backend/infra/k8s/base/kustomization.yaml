@@ -4,6 +4,7 @@ resources:
   - redis.yaml
   - api-gateway.yaml
   - ingress.yaml
+  - kafka.yaml
   - ./services/location-event-service/k8s/location-event-service.yaml
   - ./services/notification-service/k8s/notification-service.yaml
   - ./services/todo-service/k8s/todo-service.yaml
