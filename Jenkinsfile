@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    SERVICES   = "api-gateway location-event-service notification-service"
+    SERVICES   = "api-gateway location-event-service notification-service todo-service trigger-engine-service"
     AWS_REGION = 'ap-northeast-2'
     EKS_CLUSTER= 'adinga-dev'
   }
