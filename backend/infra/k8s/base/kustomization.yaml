@@ -6,3 +6,5 @@ resources:
   - ingress.yaml
   - ./services/location-event-service/k8s/location-event-service.yaml
   - ./services/notification-service/k8s/notification-service.yaml
+  - ./services/todo-service/k8s/todo-service.yaml
+  - ./services/trigger-engine-service/k8s/trigger-engine.yaml

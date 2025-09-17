@@ -33,6 +33,36 @@ spring:
           filters:
             - RewritePath=/api/notifications(?<segment>/?.*), ${segment}
             - RemoveRequestHeader=Authorization
+
+        - id: todo-service
+          uri: http://${TODOS_HOST}:${TODOS_PORT}
+          predicates:
+            - Path=/api/todos/**
+          filters:
+            - StripPrefix=2
+
+        - id: trigger-engine-service
+          uri: http://${TRIGGERS_HOST}:${TRIGGERS_PORT}
+          predicates:
+            - Path=/api/triggers/**
+          filters:
+            - StripPrefix=2
+
+        - id: todos-actuator-open
+          uri: http://${TODOS_HOST:todo-service}:${TODOS_PORT:8401}
+          predicates:
+            - Path=/api/todos/actuator/**,/api/todos/swagger-ui/**,/api/todos/v3/api-docs/**
+          filters:
+            - RewritePath=/api/todos(?<segment>/?.*), ${segment}
+            - RemoveRequestHeader=Authorization
+
+        - id: triggers-actuator-open
+          uri: http://${TRIGGERS_HOST:trigger-engine-service}:${TRIGGERS_PORT:8601}
+          predicates:
+            - Path=/api/triggers/actuator/**,/api/triggers/swagger-ui/**,/api/triggers/v3/api-docs/**
+          filters:
+            - RewritePath=/api/triggers(?<segment>/?.*), ${segment}
+            - RemoveRequestHeader=Authorization
 #      routes:
 #        - id: locations
 #          uri: http://${LOCATIONS_HOST:location-event-service}:${LOCATIONS_PORT:8301}
