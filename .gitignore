@@ -38,3 +38,4 @@ logs/
 application-local.yml
 application-*.local.yml
 *.secrets.yml
+adinga-key.pem
