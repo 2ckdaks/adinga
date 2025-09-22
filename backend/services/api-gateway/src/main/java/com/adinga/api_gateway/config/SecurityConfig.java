@@ -45,6 +45,7 @@ public class SecurityConfig {
                                 "/api/*/actuator/health/**",
                                 "/api/*/actuator/info"
                         ).permitAll()
+                        .pathMatchers("/api/**").permitAll() // 비즈니스 API는 Security 통과시킴 (GlobalFilter가 토큰 검사)
                         .pathMatchers("/webjars/**").permitAll()
 
                         .anyExchange().authenticated()
