@@ -34,27 +34,24 @@ spring:
             - RewritePath=/api/notifications(?<segment>/?.*), ${segment}
             - RemoveRequestHeader=Authorization
 
+        # ===== TODOS =====
+        # 정확히 /api/todos 또는 /api/todos/ 인 경우 -> 백엔드 /todos 로 보냄
         - id: todo-service-root
           uri: http://${TODOS_HOST}:${TODOS_PORT}
           predicates:
             - Path=/api/todos,/api/todos/
           filters:
-            - SetPath=/
+            - SetPath=/todos
 
+        # /api/todos/** 인 경우 -> /todos/** 로 보냄 (ID 같은 하위 경로 포함)
         - id: todo-service
           uri: http://${TODOS_HOST}:${TODOS_PORT}
           predicates:
             - Path=/api/todos/**
           filters:
-            - StripPrefix=2
+            - RewritePath=/api/todos/(?<segment>.*), /todos/${segment}
 
-        - id: trigger-engine-service
-          uri: http://${TRIGGERS_HOST}:${TRIGGERS_PORT}
-          predicates:
-            - Path=/api/triggers/**
-          filters:
-            - StripPrefix=2
-
+        # (todos) 헬스/스웨거 공개
         - id: todos-actuator-open
           uri: http://${TODOS_HOST:todo-service}:${TODOS_PORT:8201}
           predicates:
@@ -63,6 +60,14 @@ spring:
             - RewritePath=/api/todos(?<segment>/?.*), ${segment}
             - RemoveRequestHeader=Authorization
 
+        # ===== TRIGGERS =====
+        - id: trigger-engine-service
+          uri: http://${TRIGGERS_HOST}:${TRIGGERS_PORT}
+          predicates:
+            - Path=/api/triggers/**
+          filters:
+            - StripPrefix=2
+
         - id: triggers-actuator-open
           uri: http://${TRIGGERS_HOST:trigger-engine-service}:${TRIGGERS_PORT:8401}
           predicates:
@@ -70,27 +75,13 @@ spring:
           filters:
             - RewritePath=/api/triggers(?<segment>/?.*), ${segment}
             - RemoveRequestHeader=Authorization
-      #      routes:
-      #        - id: locations
-      #          uri: http://${LOCATIONS_HOST:location-event-service}:${LOCATIONS_PORT:8301}
-      #          predicates:
-      #            - Path=/locations/**          # 프론트는 /locations/** 로 호출
-      #          filters:
-      #            - StripPrefix=1                # 백엔드에는 / 이하만 전달
-      #
-      #        - id: notifications
-      #          uri: http://${NOTIFICATIONS_HOST:notification-service}:${NOTIFICATIONS_PORT:8501}
-      #          predicates:
-      #            - Path=/notifications/**
-      #          filters:
-      #            - StripPrefix=1
 
       # CORS – 프론트 개발 시 편의
       globalcors:
         add-to-simple-url-handler-mapping: true
         corsConfigurations:
           "[/**]":
-            allowedOrigins: "http://localhost:3000" # TODO : 이후 프론트 주소로 바꾸면됨
+            allowedOrigins: "http://localhost:3000" # TODO: 실제 프론트 도메인으로 교체
             allowedMethods: "*"
             allowedHeaders: "*"
             allowCredentials: true
