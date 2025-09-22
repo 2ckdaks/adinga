@@ -34,6 +34,13 @@ spring:
             - RewritePath=/api/notifications(?<segment>/?.*), ${segment}
             - RemoveRequestHeader=Authorization
 
+        - id: todo-service-root
+          uri: http://${TODOS_HOST}:${TODOS_PORT}
+          predicates:
+            - Path=/api/todos,/api/todos/
+          filters:
+            - SetPath=/
+
         - id: todo-service
           uri: http://${TODOS_HOST}:${TODOS_PORT}
           predicates:
