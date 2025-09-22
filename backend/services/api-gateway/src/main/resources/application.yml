@@ -49,7 +49,7 @@ spring:
             - StripPrefix=2
 
         - id: todos-actuator-open
-          uri: http://${TODOS_HOST:todo-service}:${TODOS_PORT:8401}
+          uri: http://${TODOS_HOST:todo-service}:${TODOS_PORT:8201}
           predicates:
             - Path=/api/todos/actuator/**,/api/todos/swagger-ui/**,/api/todos/v3/api-docs/**
           filters:
@@ -57,33 +57,33 @@ spring:
             - RemoveRequestHeader=Authorization
 
         - id: triggers-actuator-open
-          uri: http://${TRIGGERS_HOST:trigger-engine-service}:${TRIGGERS_PORT:8601}
+          uri: http://${TRIGGERS_HOST:trigger-engine-service}:${TRIGGERS_PORT:8401}
           predicates:
             - Path=/api/triggers/actuator/**,/api/triggers/swagger-ui/**,/api/triggers/v3/api-docs/**
           filters:
             - RewritePath=/api/triggers(?<segment>/?.*), ${segment}
             - RemoveRequestHeader=Authorization
-#      routes:
-#        - id: locations
-#          uri: http://${LOCATIONS_HOST:location-event-service}:${LOCATIONS_PORT:8301}
-#          predicates:
-#            - Path=/locations/**          # 프론트는 /locations/** 로 호출
-#          filters:
-#            - StripPrefix=1                # 백엔드에는 / 이하만 전달
-#
-#        - id: notifications
-#          uri: http://${NOTIFICATIONS_HOST:notification-service}:${NOTIFICATIONS_PORT:8501}
-#          predicates:
-#            - Path=/notifications/**
-#          filters:
-#            - StripPrefix=1
+      #      routes:
+      #        - id: locations
+      #          uri: http://${LOCATIONS_HOST:location-event-service}:${LOCATIONS_PORT:8301}
+      #          predicates:
+      #            - Path=/locations/**          # 프론트는 /locations/** 로 호출
+      #          filters:
+      #            - StripPrefix=1                # 백엔드에는 / 이하만 전달
+      #
+      #        - id: notifications
+      #          uri: http://${NOTIFICATIONS_HOST:notification-service}:${NOTIFICATIONS_PORT:8501}
+      #          predicates:
+      #            - Path=/notifications/**
+      #          filters:
+      #            - StripPrefix=1
 
       # CORS – 프론트 개발 시 편의
       globalcors:
         add-to-simple-url-handler-mapping: true
         corsConfigurations:
-          '[/**]':
-            allowedOrigins: "http://localhost:3000"   # TODO : 이후 프론트 주소로 바꾸면됨
+          "[/**]":
+            allowedOrigins: "http://localhost:3000" # TODO : 이후 프론트 주소로 바꾸면됨
             allowedMethods: "*"
             allowedHeaders: "*"
             allowCredentials: true
