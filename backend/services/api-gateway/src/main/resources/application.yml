@@ -36,6 +36,18 @@ spring:
 
         # ===== TODOS =====
         # 정확히 /api/todos 또는 /api/todos/ 인 경우 -> 백엔드 /todos 로 보냄
+        # ===== TODOS (Swagger/Actuator first) =====
+        # 1) 공개: /api/todos/actuator/**, /api/todos/swagger-ui/**, /api/todos/v3/api-docs/**
+        - id: todos-actuator-open
+          order: -1
+          uri: http://${TODOS_HOST:todo-service}:${TODOS_PORT:8201}
+          predicates:
+            - Path=/api/todos/actuator/**,/api/todos/swagger-ui/**,/api/todos/v3/api-docs/**
+          filters:
+            - RewritePath=/api/todos(?<segment>/?.*), ${segment}
+            - RemoveRequestHeader=Authorization
+
+        # 2) 정확히 /api/todos 또는 /api/todos/ -> /todos 로
         - id: todo-service-root
           uri: http://${TODOS_HOST}:${TODOS_PORT}
           predicates:
@@ -43,22 +55,13 @@ spring:
           filters:
             - SetPath=/todos
 
-        # /api/todos/** 인 경우 -> /todos/** 로 보냄 (ID 같은 하위 경로 포함)
+        # 3) /api/todos/** -> /todos/** (ID 포함)
         - id: todo-service
           uri: http://${TODOS_HOST}:${TODOS_PORT}
           predicates:
             - Path=/api/todos/**
           filters:
             - RewritePath=/api/todos/(?<segment>.*), /todos/${segment}
-
-        # (todos) 헬스/스웨거 공개
-        - id: todos-actuator-open
-          uri: http://${TODOS_HOST:todo-service}:${TODOS_PORT:8201}
-          predicates:
-            - Path=/api/todos/actuator/**,/api/todos/swagger-ui/**,/api/todos/v3/api-docs/**
-          filters:
-            - RewritePath=/api/todos(?<segment>/?.*), ${segment}
-            - RemoveRequestHeader=Authorization
 
         # ===== TRIGGERS =====
         - id: trigger-engine-service
