@@ -50,6 +50,12 @@ public class TodoController {
         return todoService.updatePartial(id, req.getTitle(), req.getCompleted());
     }
 
+    @PatchMapping("/{id}/toggle")
+    public ResponseEntity<Void> toggle(@PathVariable long id) {
+        todoService.toggle(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {

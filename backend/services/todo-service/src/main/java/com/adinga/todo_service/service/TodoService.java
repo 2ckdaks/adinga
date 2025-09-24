@@ -45,6 +45,13 @@ public class TodoService {
         return repo.save(t);
     }
 
+    @Transactional
+    public void toggle(long id) {
+        Todo t = findById(id);
+        t.setCompleted(!t.isCompleted());
+        repo.save(t);
+    }
+
     /** 부분 수정 */
     public Todo updatePartial(Long id, String title, Boolean completed) {
         Todo t = findById(id);
