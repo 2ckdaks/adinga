@@ -2,29 +2,57 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: todo-service
-  labels: {app: todo-service}
+  labels: { app: todo-service }
 spec:
   replicas: 1
-  selector: {matchLabels: {app: todo-service}}
+  selector: { matchLabels: { app: todo-service } }
   template:
-    metadata: {labels: {app: todo-service}}
+    metadata: { labels: { app: todo-service } }
     spec:
       imagePullSecrets:
         - name: regcred
       containers:
         - name: app
           image: ghcr.io/2ckdaks/todo-service:build-41
-          ports: [{containerPort: 8201}]
-          readinessProbe: {httpGet: {path: /actuator/health, port: 8201}}
-          livenessProbe:  {httpGet: {path: /actuator/health, port: 8201}}
+          ports:
+            - name: http
+              containerPort: 8201
+
+          # 기동 안정화
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+
+          # 살아있음 확인
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # 트래픽 수신 가능 여부
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: todo-service
 spec:
-  selector: {app: todo-service}
+  selector: { app: todo-service }
   ports:
     - name: http
       port: 8201
-      targetPort: 8201
+      targetPort: http
