@@ -10,8 +10,9 @@ import org.springframework.kafka.config.TopicBuilder;
 public class KafkaTopics {
 
     @Bean
-    public NewTopic locationEventsTopic(@Value("${app.kafka.location-topic}") String name) {
-        // 이미 있으면 no-op
+    public NewTopic locationEventsTopic(
+            @Value("${app.kafka.location-topic:location-events}") String name // 기본값 추가
+    ) {
         return TopicBuilder.name(name).partitions(3).replicas(1).build();
     }
 }

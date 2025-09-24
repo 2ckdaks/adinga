@@ -17,7 +17,8 @@ public class LocationEventPublisher {
 
     public LocationEventPublisher(
             KafkaTemplate<String, LocationEvent> kafkaTemplate,
-            @Value("${app.kafka.location-topic:location-events}") String topic) {
+            @Value("${app.kafka.location-topic:location-events}") String topic
+    ) {
         this.kafkaTemplate = kafkaTemplate;
         this.topic = topic;
     }
@@ -26,7 +27,9 @@ public class LocationEventPublisher {
         if (e.getTs() == null) {
             e.setTs(Instant.now());
         }
-        String key = e.getDeviceId() == null ? "unknown" : e.getDeviceId();
+        String key = (e.getDeviceId() == null || e.getDeviceId().isBlank())
+                ? "unknown"
+                : e.getDeviceId();
         return kafkaTemplate.send(topic, key, e);
     }
 }

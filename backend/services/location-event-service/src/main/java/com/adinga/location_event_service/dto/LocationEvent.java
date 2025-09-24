@@ -2,10 +2,10 @@ package com.adinga.location_event_service.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
 import java.time.Instant;
 
 public class LocationEvent {
+
     @NotBlank
     private String deviceId;
 
@@ -15,7 +15,7 @@ public class LocationEvent {
     @NotNull
     private Double lng;
 
-    // 전송 시점(요청에 없으면 서버가 채움)
+    // 클라이언트가 안 주면 서버가 채움
     private Instant ts;
 
     public String getDeviceId() { return deviceId; }
