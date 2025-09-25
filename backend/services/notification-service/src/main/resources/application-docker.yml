@@ -1,16 +1,32 @@
 spring:
+  config:
+    activate:
+      on-profile: docker
+
   kafka:
-    bootstrap-servers: kafka:9092
     consumer:
-      group-id: notification-service
-      # 빈 그룹이면 가장 오래된 것부터 읽을지 최신부터 읽을지 선택
-      auto-offset-reset: latest
       enable-auto-commit: false
-#      자바 @Bean에서 JsonDeserializer로 설정됨
-#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    producer:             # DLT 발행용 KafkaTemplate이 사용
-      acks: all
-#      자바 @Bean에서 JsonDeserializer로 설정됨
-#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      ack-mode: record
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+# (DB 아직 안 붙이면 임시로 자동설정 제외 — 필요할 때만)
+#  autoconfigure:
+#    exclude:
+#      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+#      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+
+app:
+  topics:
+    notifications: notifications
+    notifications-dlt: notifications.dlt
+  push:
+    enabled: true
