@@ -13,4 +13,5 @@ spring:
 
 app:
   kafka:
-    location-topic: location-events
+    location-topic: trigger-input
+

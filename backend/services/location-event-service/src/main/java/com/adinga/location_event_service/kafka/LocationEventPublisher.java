@@ -17,7 +17,7 @@ public class LocationEventPublisher {
 
     public LocationEventPublisher(
             KafkaTemplate<String, LocationEvent> kafkaTemplate,
-            @Value("${app.kafka.location-topic:location-events}") String topic
+            @Value("${app.kafka.location-topic:trigger-input}") String topic
     ) {
         this.kafkaTemplate = kafkaTemplate;
         this.topic = topic;
