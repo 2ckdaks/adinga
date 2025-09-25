@@ -2,36 +2,40 @@ spring:
   cloud:
     gateway:
       routes:
-        # 1) 비즈니스용 (Authorization 유지)
+        # ===== LOCATIONS =====
         - id: locations
           uri: http://${LOCATIONS_HOST:location-event-service}:${LOCATIONS_PORT:8301}
           predicates:
             - Path=/api/locations/**
           filters:
-            - RewritePath=/api/locations(?<segment>/?.*), ${segment}
+            # /api/locations/**  ->  /locations/**
+            - RewritePath=/api/locations/(?<segment>.*), /locations/${segment}
 
+        - id: locations-actuator-open
+          order: -1
+          uri: http://${LOCATIONS_HOST:location-event-service}:${LOCATIONS_PORT:8301}
+          predicates:
+            - Path=/api/locations/actuator/**,/api/locations/swagger-ui/**,/api/locations/v3/api-docs/**
+          filters:
+            - RewritePath=/api/locations/(?<segment>.*), /locations/${segment}
+            - RemoveRequestHeader=Authorization
+
+        # ===== NOTIFICATIONS =====
         - id: notifications
           uri: http://${NOTIFICATIONS_HOST:notification-service}:${NOTIFICATIONS_PORT:8501}
           predicates:
             - Path=/api/notifications/**
           filters:
-            - RewritePath=/api/notifications(?<segment>/?.*), ${segment}
-
-        # 2) 헬스/스웨거 전용 (Authorization 제거)
-        - id: locations-actuator-open
-          uri: http://${LOCATIONS_HOST:location-event-service}:${LOCATIONS_PORT:8301}
-          predicates:
-            - Path=/api/locations/actuator/**,/api/locations/swagger-ui/**,/api/locations/v3/api-docs/**
-          filters:
-            - RewritePath=/api/locations(?<segment>/?.*), ${segment}
-            - RemoveRequestHeader=Authorization
+            # /api/notifications/** -> /notifications/**
+            - RewritePath=/api/notifications/(?<segment>.*), /notifications/${segment}
 
         - id: notifications-actuator-open
+          order: -1
           uri: http://${NOTIFICATIONS_HOST:notification-service}:${NOTIFICATIONS_PORT:8501}
           predicates:
             - Path=/api/notifications/actuator/**,/api/notifications/swagger-ui/**,/api/notifications/v3/api-docs/**
           filters:
-            - RewritePath=/api/notifications(?<segment>/?.*), ${segment}
+            - RewritePath=/api/notifications/(?<segment>.*), /notifications/${segment}
             - RemoveRequestHeader=Authorization
 
         # ===== TODOS =====
@@ -69,14 +73,15 @@ spring:
           predicates:
             - Path=/api/triggers/**
           filters:
-            - StripPrefix=2
+            - RewritePath=/api/triggers/(?<segment>.*), /triggers/${segment}
 
         - id: triggers-actuator-open
+          order: -1
           uri: http://${TRIGGERS_HOST:trigger-engine-service}:${TRIGGERS_PORT:8401}
           predicates:
             - Path=/api/triggers/actuator/**,/api/triggers/swagger-ui/**,/api/triggers/v3/api-docs/**
           filters:
-            - RewritePath=/api/triggers(?<segment>/?.*), ${segment}
+            - RewritePath=/api/triggers/(?<segment>.*), /triggers/${segment}
             - RemoveRequestHeader=Authorization
 
       # CORS – 프론트 개발 시 편의
