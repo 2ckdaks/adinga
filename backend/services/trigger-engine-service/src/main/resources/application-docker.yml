@@ -11,8 +11,22 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+
   kafka:
+    # k8s에선 SPRING_KAFKA_BOOTSTRAP_SERVERS 환경변수가 우선, 없으면 기본값 사용
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+
+    # --- CONSUMER: trigger-input 수신 ---
+    consumer:
+      group-id: trigger-engine
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.adinga.trigger_engine_service.dto.LocationEvent
+        spring.json.use.type.headers: false
+
+    # --- PRODUCER: notifications 송신(기존과 동일) ---
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -29,4 +43,5 @@ logging:
 
 app:
   topics:
+    location: trigger-input
     notifications: notifications
