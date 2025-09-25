@@ -32,6 +32,14 @@ public class GeoRuleController {
         return toRes(service.find(id));
     }
 
+    @GetMapping("/rules/by-todo/{todoId}")
+    public ResponseEntity<GeoRuleDtos.Res> getByTodo(@PathVariable Long todoId) {
+        GeoRule r = service.findByTodoId(todoId)  // 없으면 404 던지게
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Rule not found for todoId=" + todoId));
+        return ResponseEntity.ok(toRes(r));
+    }
+
     @PatchMapping("/rules/{id}")
     public GeoRuleDtos.Res patch(@PathVariable Long id, @Valid @RequestBody GeoRuleDtos.UpdateReq req) {
         return toRes(service.update(id, req));

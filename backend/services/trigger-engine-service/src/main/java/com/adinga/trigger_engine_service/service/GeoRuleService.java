@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -43,6 +44,10 @@ public class GeoRuleService {
 
     public GeoRule find(Long id) {
         return repo.findById(id).orElseThrow();
+    }
+
+    public Optional<GeoRule> findByTodoId(Long todoId) {
+        return repo.findByTodoId(todoId);
     }
 
     public void delete(Long id) {
