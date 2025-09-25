@@ -34,6 +34,8 @@ spec:
               value: app
             - name: SPRING_JPA_HIBERNATE_DDL_AUTO
               value: update
+            - name: APP_TRIGGERBASEURL
+              value: http://trigger-engine-service:8401
           resources:
             requests:
               cpu: "250m"
