@@ -27,11 +27,13 @@ public class LocationEventListener {
         log.info("[TRG] location consumed deviceId={}, lat={}, lng={}, ts={}",
                 ev.getDeviceId(), ev.getLat(), ev.getLng(), ev.getTs());
 
-        // (데모) ruleId/Name 이 오면 그대로, 없으면 기본값으로 통과시킴
-        int ruleId = ev.getRuleId() != null ? ev.getRuleId() : 1;
+        Long ruleId = ev.getRuleId() == null ? null : ev.getRuleId().longValue();
+
         String ruleName = ev.getRuleName() != null ? ev.getRuleName() : "demo-log-rule";
 
-        NotificationEvent ne = new NotificationEvent(ruleId, ruleName, Instant.now());
-        notificationProducer.send(ne); // 기존 Producer 사용
+        Instant occurredAt = ev.getTs() != null ? ev.getTs() : Instant.now();
+
+        NotificationEvent ne = new NotificationEvent(ruleId, ruleName, occurredAt);
+        notificationProducer.send(ne);
     }
 }
