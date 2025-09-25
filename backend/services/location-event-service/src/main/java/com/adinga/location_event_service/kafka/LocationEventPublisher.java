@@ -24,12 +24,18 @@ public class LocationEventPublisher {
     }
 
     public CompletableFuture<SendResult<String, LocationEvent>> publish(LocationEvent e) {
-        if (e.getTs() == null) {
-            e.setTs(Instant.now());
-        }
-        String key = (e.getDeviceId() == null || e.getDeviceId().isBlank())
-                ? "unknown"
-                : e.getDeviceId();
-        return kafkaTemplate.send(topic, key, e);
+        if (e.getTs() == null) e.setTs(Instant.now());
+        String key = (e.getDeviceId() == null || e.getDeviceId().isBlank()) ? "unknown" : e.getDeviceId();
+
+        return kafkaTemplate.send(topic, key, e).whenComplete((r, ex) -> {
+            if (ex == null) {
+                var md = r.getRecordMetadata();
+                org.slf4j.LoggerFactory.getLogger(getClass())
+                        .info("[LOC] Kafka 전송 성공 topic={}, partition={}, offset={}", md.topic(), md.partition(), md.offset());
+            } else {
+                org.slf4j.LoggerFactory.getLogger(getClass())
+                        .error("[LOC] Kafka 전송 실패 topic={}, err={}", topic, ex.toString());
+            }
+        });
     }
 }
