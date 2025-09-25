@@ -4,7 +4,6 @@ import com.adinga.notification_service.repository.DevicePushTokenRepository;
 import com.adinga.notification_service.service.GeoRuleClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.header.Headers;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -45,9 +44,7 @@ public class NotificationEventListener {
             @Header(KafkaHeaders.RECEIVED_PARTITION) Integer partition,
             @Header(KafkaHeaders.OFFSET) Long offset,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-            @Header(KafkaHeaders.RECEIVED_TIMESTAMP) Long ts,
-            @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String msgKey,
-            @Header(KafkaHeaders.RECEIVED_HEADERS) Headers headers
+            @Header(KafkaHeaders.RECEIVED_TIMESTAMP) Long ts
     ) {
         log.info("Notification received topic={}, partition={}, offset={}, key={}, event={}",
                 topic, partition, offset, key, ev);
