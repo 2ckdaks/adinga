@@ -24,6 +24,16 @@ spec:
               value: kafka:9092
             - name: APP_TOPICS_NOTIFICATIONS
               value: notifications
+            - name: SPRING_PROFILES_ACTIVE
+              value: docker
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql:3306/notification?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+            - name: SPRING_DATASOURCE_USERNAME
+              value: app
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: app
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: update
           resources:
             requests:
               cpu: "250m"
