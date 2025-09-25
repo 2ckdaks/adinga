@@ -5,5 +5,5 @@ import java.time.Instant;
 public record NotificationEvent(
         Long ruleId,
         String ruleName,
-        Instant firedAt
+        Instant occurredAt
 ) {}
