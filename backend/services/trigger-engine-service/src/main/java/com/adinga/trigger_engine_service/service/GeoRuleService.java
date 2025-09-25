@@ -1,6 +1,6 @@
 package com.adinga.trigger_engine_service.service;
 
-import com.adinga.trigger_engine_service.api.dto.GeoRuleDtos;
+import com.adinga.trigger_engine_service.dto.GeoRuleDtos;
 import com.adinga.trigger_engine_service.domain.GeoRule;
 import com.adinga.trigger_engine_service.repository.GeoRuleRepository;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package com.adinga.trigger_engine_service.api.dto;
+package com.adinga.trigger_engine_service.dto;
 
 import jakarta.validation.constraints.*;
 
